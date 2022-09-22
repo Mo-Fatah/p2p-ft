@@ -1,5 +1,5 @@
 [package]
-name = "file-transfer"
+name = "p2p-ft"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,6 +17,6 @@ trackable = "1"
 net2 = "0.2.37"
 
 [[bin]]
-name= "file-transfer"
+name= "p2p-ft"
 path= "src/main.rs"
 

@@ -7,7 +7,7 @@ mod send;
 mod server;
 
 #[derive(Debug, Parser)]
-#[clap(name = "file-transfer")]
+#[clap(name = "p2p-ft")]
 struct Cli {
     #[clap(subcommand)]
     command: CliCommand,
