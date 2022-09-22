@@ -1,9 +1,9 @@
+use anyhow::{bail, Result};
 use net2::unix::UnixTcpBuilderExt;
 use net2::TcpBuilder;
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
-use anyhow::{Result, bail};
 
 pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
     let connection_builder = TcpBuilder::new_v4()?;
@@ -55,7 +55,7 @@ pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
             let connect_to = ips.get(0).unwrap();
             let laddr = cloned_stream.local_addr().unwrap().to_string();
 
-            connect(&laddr, connect_to, connection_established, "public") 
+            connect(&laddr, connect_to, connection_established, "public")
         });
 
         // PRIVATE
@@ -70,13 +70,12 @@ pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
             connect(&laddr, connect_to, connection_established_clone, "private")
         });
 
-
         if let Ok(tcp_stream) = public_thread.join().unwrap() {
-            return Ok(tcp_stream)
+            return Ok(tcp_stream);
         }
 
         if let Ok(tcp_stream) = private_thread.join().unwrap() {
-            return Ok(tcp_stream)
+            return Ok(tcp_stream);
         }
     }
 
@@ -121,37 +120,10 @@ fn connect(
             continue;
         }
         println!("Connected to {} successfully!", ip);
-        
 
         *connection_established.lock().unwrap() = true;
         let stream = stream.unwrap();
-        break Ok(stream)
-        //let mut stream_cloned = stream.try_clone().unwrap();
-
-        //std::thread::spawn(move || {
-        //    loop {
-        //        let mut buf = [0; 1024];
-        //        let size = stream_cloned.read(&mut buf);
-
-        //        if let Ok(size) = size {
-        //            if size == 0 {
-        //                continue;
-        //            }
-        //            let buf = String::from_utf8(buf[..size].to_vec()).unwrap();
-        //            println!("{}", buf);
-        //        }
-        //    }
-        //});
-
-        //loop {
-        //    //let stdin = std::io::stdin();
-        //    //for line in stdin.lock().lines() {
-        //    //    stream.write(line.unwrap().as_bytes())?;
-        //    //}
-        //    let msg = format!("hi from {} : {:?}", flag, stream.peer_addr());
-        //    stream.write(msg.as_bytes()).unwrap();
-        //    std::thread::sleep(std::time::Duration::from_secs(1));
-        //}
+        break Ok(stream);
     }
 }
 

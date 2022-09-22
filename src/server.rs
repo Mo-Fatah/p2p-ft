@@ -1,9 +1,9 @@
+use anyhow::{self, bail};
 use std::collections::HashMap;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{channel, Sender};
-use anyhow;
+use std::sync::{Arc, Mutex};
 
 use crate::ServerCommand;
 
@@ -15,13 +15,17 @@ struct Peer {
     pub remote_port: u16,
 }
 
-fn handle_client(mut socket: TcpStream, peers: Arc<Mutex<Vec<Peer>>>, hosts_tx: Sender<(std::string::String, std::string::String)>) -> anyhow::Result<()> {
+fn handle_client(
+    mut socket: TcpStream,
+    peers: Arc<Mutex<Vec<Peer>>>,
+    hosts_tx: Sender<(std::string::String, std::string::String)>,
+) -> anyhow::Result<()> {
     let stringified_address = socket.peer_addr().unwrap().ip().to_string();
     let socket_port = socket.peer_addr().unwrap().port();
     loop {
         let mut buf = [0; 1024];
         let size = socket.read(&mut buf);
-        
+
         if buf.len() == 0 || size.is_err() {
             let mut lock = peers.lock().unwrap();
             let mut iter = lock.iter();
@@ -67,11 +71,13 @@ fn handle_client(mut socket: TcpStream, peers: Arc<Mutex<Vec<Peer>>>, hosts_tx: 
         lock.push(peer);
 
         for p in lock.iter() {
-            let filtered =
-                filter_peers(&lock, String::from(&p.remote_address), p.remote_port);
+            let filtered = filter_peers(&lock, String::from(&p.remote_address), p.remote_port);
 
             if filtered.len() > 0 {
-                let sent = hosts_tx.send((format!("{}:{}", p.remote_address, p.remote_port), encode_peers(&filtered)));
+                let sent = hosts_tx.send((
+                    format!("{}:{}", p.remote_address, p.remote_port),
+                    encode_peers(&filtered),
+                ));
                 if let Err(e) = sent {
                     println!("Error sending payload to channel {}", e);
                 }
@@ -83,15 +89,30 @@ fn handle_client(mut socket: TcpStream, peers: Arc<Mutex<Vec<Peer>>>, hosts_tx: 
 }
 
 pub(crate) fn handle_server(server_cmd: ServerCommand) -> anyhow::Result<()> {
-    let address = format!("{}:{}", server_cmd.ip, server_cmd.port);
-    let listener = TcpListener::bind(address)?;
+    // default ip
+    let mut ip = String::from("0.0.0.0");
+
+    if let Some(given_ip) = server_cmd.ip {
+        ip = given_ip;
+    }
+
+    let address = format!("{}:{}", ip, server_cmd.port);
+
+    let listener = match TcpListener::bind(address) {
+        Ok(listener) => listener,
+        Err(err) => {
+            bail!("couldn't bind to the given address.\n{}\n", err);
+        }
+    };
+
     let peers: Arc<Mutex<Vec<Peer>>> = Arc::new(Mutex::new(Vec::<Peer>::new()));
-    let connections: Arc<Mutex<HashMap<String, TcpStream>>> = Arc::new(Mutex::new(HashMap::<String, TcpStream>::new()));
+    let connections: Arc<Mutex<HashMap<String, TcpStream>>> =
+        Arc::new(Mutex::new(HashMap::<String, TcpStream>::new()));
     let (hosts_tx, hosts_rx) = channel::<(String, String)>();
 
     let cloned_connections = Arc::clone(&connections);
 
-    // This is the loop which is listening for incoming messages 
+    // This is the loop which is listening for incoming messages
     // from the channel
     // the idea behind this channel is to send payloads to the desired
     // socket connections
@@ -101,7 +122,7 @@ pub(crate) fn handle_server(server_cmd: ServerCommand) -> anyhow::Result<()> {
 
             if recv.is_err() {
                 println!("Recv error !");
-                break
+                break;
             }
 
             // Get the desired socket via the key
@@ -116,7 +137,7 @@ pub(crate) fn handle_server(server_cmd: ServerCommand) -> anyhow::Result<()> {
                 }
             }
             drop(lock);
-        }    
+        }
     });
 
     for stream in listener.incoming() {
@@ -164,7 +185,10 @@ fn encode_peers(peers: &Vec<Peer>) -> String {
     // let result = String::from("");
 
     for p in peers {
-        keys.push(format!("{}:{}|{}:{}", p.remote_address, p.remote_port, p.local_address, p.local_port));
+        keys.push(format!(
+            "{}:{}|{}:{}",
+            p.remote_address, p.remote_port, p.local_address, p.local_port
+        ));
     }
 
     keys.join(",")
