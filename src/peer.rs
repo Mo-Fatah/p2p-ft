@@ -44,6 +44,10 @@ pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
             );
             listen(listen_on).unwrap();
         });
+
+
+        println!("[YOU -> PEER] Trying to connect to your peer");
+
         // PUBLIC
         let cloned_stream = stream.try_clone().unwrap();
         let buf_clone = buf.clone();
@@ -103,20 +107,20 @@ fn connect(
     loop {
         let established = *connection_established.lock().unwrap();
         if established {
-            println!("Breaking {} loop cause the other one connected", flag);
+            //dbg!("Breaking {} loop cause the other one connected", flag);
             break Err(anyhow::Error::msg("Already connected"));
         }
 
         drop(established);
 
-        println!(
-            "[ME -> B] Trying to connect to {} which is {} from {}",
-            ip, flag, laddr
-        );
+        //dbg!(
+        //    "[ME -> B] Trying to connect to {} which is {} from {}",
+        //    ip, flag, laddr
+        //);
         let stream = connection_builder.connect(ip);
 
         if stream.is_err() {
-            println!("[ME -> B] Connection failed: repeating");
+            //dbg!("[ME -> B] Connection failed: repeating");
             continue;
         }
         println!("Connected to {} successfully!", ip);

@@ -26,7 +26,7 @@ pub(crate) fn handle_send(send_cmd: SendCommand) -> Result<()> {
 
     tcp_stream.write_all(metadata.as_bytes())?;
 
-    let mut buf = [0u8; 1024]; 
+    let mut buf = [0u8; 1024];
 
     // Asserting that metadata are sent correctly
     loop {

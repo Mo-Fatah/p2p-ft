@@ -52,10 +52,9 @@ struct SendCommand {
 struct ReceiveCommand {
     /// the public address of the Rendezvous server in the form of <IpAddress>:<Port>
     server_addr: String,
-
-//    /// the output path of the received file.
-//    #[clap(short, long, value_parser)]
-//    output: Option<PathBuf>,
+    //    /// the output path of the received file.
+    //    #[clap(short, long, value_parser)]
+    //    output: Option<PathBuf>,
 }
 
 fn main() -> anyhow::Result<()> {
