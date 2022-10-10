@@ -15,3 +15,5 @@ indicatif = "0.17.1"
 name= "p2p-ft"
 path= "src/main.rs"
 
+[features]
+unix = []

@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+#[cfg(feature = "unix")]
 use net2::unix::UnixTcpBuilderExt;
 use net2::TcpBuilder;
 use std::io::prelude::*;
@@ -8,6 +9,8 @@ use std::sync::{Arc, Mutex};
 pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
     let connection_builder = TcpBuilder::new_v4()?;
     connection_builder.reuse_address(true).unwrap();
+
+    #[cfg(feature = "unix")]
     connection_builder.reuse_port(true).unwrap();
 
     let mut stream = connection_builder.connect(addr)?;
@@ -94,15 +97,17 @@ fn connect(
 ) -> Result<TcpStream> {
     let connection_builder = TcpBuilder::new_v4()?;
     connection_builder.reuse_address(true).unwrap();
+    #[cfg(feature = "unix")]
     connection_builder.reuse_port(true).unwrap();
 
     connection_builder
         .bind(laddr)
         .expect(&format!("binding from : {}", flag))
         .reuse_address(true)
-        .unwrap()
-        .reuse_port(true)
         .unwrap();
+    
+    #[cfg(feature = "unix")]
+    connection_builder.reuse_port(true).unwrap();
 
     loop {
         let established = *connection_established.lock().unwrap();
@@ -140,9 +145,10 @@ fn listen(ip: String) -> std::io::Result<()> {
         .bind(ip)
         .unwrap()
         .reuse_address(true)
-        .unwrap()
-        .reuse_port(true)
         .unwrap();
+
+    #[cfg(feature = "unix")]
+    server_builder.reuse_port(true).unwrap();
 
     let server = server_builder.listen(1)?;
     for stream in server.incoming() {
