@@ -46,6 +46,8 @@ struct SendCommand {
 
     #[clap(value_parser)]
     file: PathBuf,
+
+    secret: Option<String>
 }
 
 #[derive(Debug, Args)]
@@ -55,6 +57,7 @@ struct ReceiveCommand {
     //    /// the output path of the received file.
     //    #[clap(short, long, value_parser)]
     //    output: Option<PathBuf>,
+    secret: Option<String>
 }
 
 fn main() -> anyhow::Result<()> {

@@ -7,7 +7,7 @@ use crate::{peer, SendCommand};
 use anyhow::{bail, Result};
 
 pub(crate) fn handle_send(send_cmd: SendCommand) -> Result<()> {
-    let mut tcp_stream = peer::handle_peers(&send_cmd.server_addr)?;
+    let mut tcp_stream = peer::handle_peers(&send_cmd.server_addr, send_cmd.secret)?;
 
     let mut file: File;
 

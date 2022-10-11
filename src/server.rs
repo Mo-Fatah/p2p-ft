@@ -13,6 +13,7 @@ struct Peer {
     pub local_port: u16,
     pub remote_address: String,
     pub remote_port: u16,
+    pub secret: String
 }
 
 fn handle_client(
@@ -52,6 +53,8 @@ fn handle_client(
         // that the message looks like xxx.xxx.xxx.xxx:ppppp
         let local_address = local_elements.next().unwrap();
         let local_port = local_elements.next().unwrap();
+        let secret = local_elements.next().unwrap_or("");
+
 
         let peer = Peer {
             local_address: local_address.to_string(),
@@ -65,7 +68,10 @@ fn handle_client(
                 .to_string()
                 .parse::<u16>()
                 .unwrap(),
+            secret: secret.to_string()
         };
+
+        //println!("{:?}", peer);
 
         let mut lock = peers.lock().unwrap();
         lock.push(peer);
@@ -124,13 +130,14 @@ pub(crate) fn handle_server(server_cmd: ServerCommand) -> anyhow::Result<()> {
                 println!("Recv error !");
                 break;
             }
-
+            
             // Get the desired socket via the key
             let (key, payload) = recv.unwrap();
             let mut lock = cloned_connections.lock().unwrap();
             let target = lock.get_mut(&key);
-
+             
             if let Some(target) = target {
+
                 let written = target.write(payload.as_bytes());
                 if let Err(e) = written {
                     println!("Error sending payload to {}: {}", key, e);

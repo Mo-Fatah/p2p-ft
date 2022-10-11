@@ -8,7 +8,7 @@ use std::{
 };
 
 pub(crate) fn handle_receive(rcv_cmd: ReceiveCommand) -> Result<()> {
-    let mut tcp_stream = peer::handle_peers(&rcv_cmd.server_addr)?;
+    let mut tcp_stream = peer::handle_peers(&rcv_cmd.server_addr, rcv_cmd.secret)?;
     let file_name: String;
     let file_size: u64;
 

@@ -6,7 +6,7 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
 
-pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
+pub(crate) fn handle_peers(addr: &String, secret: Option<String>) -> Result<TcpStream> {
     let connection_builder = TcpBuilder::new_v4()?;
     connection_builder.reuse_address(true).unwrap();
 
@@ -15,14 +15,26 @@ pub(crate) fn handle_peers(addr: &String) -> Result<TcpStream> {
 
     let mut stream = connection_builder.connect(addr)?;
 
-    let formatted_msg = format!(
+    let mut matching_phrase = String::from("");
+    if let Some(s) = secret {
+        matching_phrase = s.to_string();
+    }
+
+    let local_endpoint = format!(
         "{}:{}",
         stream.local_addr()?.ip(),
-        stream.local_addr()?.port()
+        stream.local_addr()?.port(),
+    );
+    
+    #[allow(unused_variables)]
+    let formatted_msg = format!(
+        "{}:{}",
+        local_endpoint,
+        matching_phrase
     );
 
-    println!("[ME -> S] publishing local endpoint {}", formatted_msg);
-    stream.write(formatted_msg.as_bytes())?;
+    println!("[ME -> S] publishing local endpoint {}", local_endpoint);
+    stream.write(local_endpoint.as_bytes())?;
 
     loop {
         let mut buf = [0; 1024];
