@@ -40,7 +40,7 @@ p2p-ft rcv <SERVER_PUBLIC_IP>:<PORT_NUMBER>
 ```
 
  
-Now, both peers are connected to the server and the has handed each peer address to the other peer.
+Now, both peers are connected to the server and the server has handed each peer address to the other peer.
 Once you see `Connected to <PEER_IP>:<PEER_PORT> successfully!` on both peers (receiver and the sender), you can now shutdown the severs. <br />
 Now both peers are connected and talking directly to each others, and you will see the file sent successfully form the sender to the receiver.
 
